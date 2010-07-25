@@ -1,8 +1,7 @@
 import oauth2 as oauth
 
 from piston.authentication.oauth.store import InvalidAccessToken, InvalidConsumer, InvalidRequestToken, Store
-from piston.authentication.oauth.utils import generate_random
-from piston.models import Nonce, Token, Consumer
+from piston.models import Nonce, Token, Consumer, VERIFIER_SIZE
 
 
 class ModelStore(Store):    
@@ -47,7 +46,7 @@ class ModelStore(Store):
             token = Token.objects.get(key=request_token.key, token_type=Token.REQUEST)
             token.is_approved = True
             token.user = request.user
-            token.verifier = oauth.generate_verifier()
+            token.verifier = oauth.generate_verifier(VERIFIER_SIZE)
             token.save()
             return token
         except Token.DoesNotExist:

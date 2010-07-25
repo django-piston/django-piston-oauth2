@@ -26,6 +26,7 @@ class Store(object):
         or raise `InvalidConsumer`.
         
         `request`: The Django request object.
+        `oauth_request`: The `oauth2.Request` object.
         `consumer_key`: The consumer key.
         """
         raise NotImplementedError
