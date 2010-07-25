@@ -46,10 +46,8 @@ urlpatterns = patterns('',
 
     url(r'^multiauth/$', multiauth),
 
-    # oauth entrypoints
-    url(r'^oauth/request_token$', 'piston.authentication.oauth.views.get_request_token'),
-    url(r'^oauth/authorize$', 'piston.authentication.oauth.views.authorize_request_token'),
-    url(r'^oauth/access_token$', 'piston.authentication.oauth.views.get_access_token'),
+    # OAuth
+    url(r'^oauth/', include('piston.authentication.oauth.urls')),
     url(r'^oauth/api_access$', ouath_access),
 
     url(r'^list_fields$', list_fields),

@@ -40,9 +40,9 @@ class MainTests(TestCase):
 class OAuthTests(MainTests):
     signature_method = oauth.SignatureMethod_HMAC_SHA1()
     callback_url = 'http://example.com/cb'
-    request_token_url = 'http://testserver/api/oauth/request_token'
-    authorize_url = 'http://testserver/api/oauth/authorize'
-    access_token_url = 'http://testserver/api/oauth/access_token'
+    request_token_url = 'http://testserver/api/oauth/get_request_token'
+    authorize_url = 'http://testserver/api/oauth/authorize_request_token'
+    access_token_url = 'http://testserver/api/oauth/get_access_token'
     api_access_url = 'http://testserver/api/oauth/api_access'
 
     def setUp(self):
