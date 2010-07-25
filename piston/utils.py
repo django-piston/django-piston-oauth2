@@ -12,7 +12,7 @@ from decorator import decorator
 
 from datetime import datetime, timedelta
 
-__version__ = '0.2.3rc1'
+__version__ = '0.3dev'
 
 def get_version():
     return __version__
