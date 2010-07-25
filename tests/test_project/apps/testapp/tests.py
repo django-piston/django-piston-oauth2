@@ -1,11 +1,12 @@
+import urlparse
+
+import oauth2 as oauth
 from django.test import TestCase
 from django.contrib.auth.models import User
 from django.utils import simplejson
 from django.conf import settings
 
-from piston import oauth
 from piston.models import Consumer, Token
-from piston.forms import OAuthAuthenticationForm
 
 try:
     import yaml
@@ -17,6 +18,7 @@ import urllib, base64
 
 from test_project.apps.testapp.models import TestModel, ExpressiveTestModel, Comment, InheritedModel, Issue58Model, ListFieldsModel
 from test_project.apps.testapp import signals
+
 
 class MainTests(TestCase):
     def setUp(self):
@@ -36,71 +38,77 @@ class MainTests(TestCase):
 
 
 class OAuthTests(MainTests):
-    signature_method = oauth.OAuthSignatureMethod_HMAC_SHA1()
+    signature_method = oauth.SignatureMethod_HMAC_SHA1()
+    callback_url = 'http://example.com/cb'
+    request_token_url = 'http://testserver/api/oauth/request_token'
+    authorize_url = 'http://testserver/api/oauth/authorize'
+    access_token_url = 'http://testserver/api/oauth/access_token'
+    api_access_url = 'http://testserver/api/oauth/api_access'
 
     def setUp(self):
         super(OAuthTests, self).setUp()
-
         self.consumer = Consumer.objects.create_consumer('Test Consumer')
         self.consumer.status = 'accepted'
         self.consumer.save()
 
     def tearDown(self):
         super(OAuthTests, self).tearDown()
-        self.consumer.delete()
+        #self.consumer.delete()
 
-    def test_handshake(self):
-        '''Test the OAuth handshake procedure
-        '''
-        oaconsumer = oauth.OAuthConsumer(self.consumer.key, self.consumer.secret)
+    def test_get_request_token(self, callback='oob'):
+        request = oauth.Request.from_consumer_and_token(self.consumer, None, 'GET', self.request_token_url, {'oauth_callback': callback})
+        request.sign_request(self.signature_method, self.consumer, None)
 
-        # Get a request key...
-        request = oauth.OAuthRequest.from_consumer_and_token(oaconsumer,
-                http_url='http://testserver/api/oauth/request_token')
-        request.sign_request(self.signature_method, oaconsumer, None)
+        response = self.client.get(self.request_token_url, request)
+        self.assertEquals(response.status_code, 200)
 
-        response = self.client.get('/api/oauth/request_token', request.parameters)
-        oatoken = oauth.OAuthToken.from_string(response.content)
+        params = dict(urlparse.parse_qsl(response.content))
+        return oauth.Token(params['oauth_token'], params['oauth_token_secret'])
 
-        token = Token.objects.get(key=oatoken.key, token_type=Token.REQUEST)
-        self.assertEqual(token.secret, oatoken.secret)
+    def authorize_request_token(self, request_token_key):
+        self.client.login(username='admin', password='admin')
+        return self.client.post(self.authorize_url, {'oauth_token': request_token_key, 'authorize_access': None})
 
-        # Simulate user authentication...
-        self.failUnless(self.client.login(username='admin', password='admin'))
-        request = oauth.OAuthRequest.from_token_and_callback(token=oatoken,
-                callback='http://printer.example.com/request_token_ready',
-                http_url='http://testserver/api/oauth/authorize')
-        request.sign_request(self.signature_method, oaconsumer, oatoken)
+    def test_authorize_request_token_without_callback(self):
+        request_token = self.test_get_request_token('oob')
+        response = self.authorize_request_token(request_token.key)
 
-        # Request the login page
-# TODO: Parse the response to make sure all the fields exist
-#        response = self.client.get('/api/oauth/authorize', {
-#            'oauth_token': oatoken.key,
-#            'oauth_callback': 'http://printer.example.com/request_token_ready',
-#            })
+        self.assertEquals(response.status_code, 200)
 
-        response = self.client.post('/api/oauth/authorize', {
-            'oauth_token': oatoken.key,
-            'oauth_callback': 'http://printer.example.com/request_token_ready',
-            'csrf_signature': OAuthAuthenticationForm.get_csrf_signature(settings.SECRET_KEY, oatoken.key),
-            'authorize_access': 1,
-            })
+    def test_authorize_request_token_with_callback(self):
+        request_token = self.test_get_request_token(self.callback_url)
+        response = self.authorize_request_token(request_token.key)
 
-        # Response should be a redirect...
-        self.assertEqual(302, response.status_code)
-        self.failUnless(response['Location'].startswith("http://printer.example.com/request_token_ready?"))
-        self.failUnless(('oauth_token='+oatoken.key in response['Location']))
+        self.assertEquals(response.status_code, 302)
+        self.assert_(response['Location'].startswith(self.callback_url))
+        return response
+
+    def test_get_access_token(self):
+        request_token = self.test_get_request_token(self.callback_url)
+        response = self.authorize_request_token(request_token.key)
+        params = dict(urlparse.parse_qsl(response['Location'][len(self.callback_url)+1:]))
         
-        # Actually we can't test this last part, since it's 1.0a.
-        # Obtain access token...
-#        request = oauth.OAuthRequest.from_consumer_and_token(oaconsumer, token=oatoken,
-#                http_url='http://testserver/api/oauth/access_token')
-#        request.sign_request(self.signature_method, oaconsumer, oatoken)
-#        response = self.client.get('/api/oauth/access_token', request.parameters)
+        request_token.set_verifier(params['oauth_verifier'])
+        
+        request = oauth.Request.from_consumer_and_token(self.consumer, request_token, 'POST', self.access_token_url)
+        request.sign_request(self.signature_method, self.consumer, request_token)
 
-#        oa_atoken = oauth.OAuthToken.from_string(response.content)
-#        atoken = Token.objects.get(key=oa_atoken.key, token_type=Token.ACCESS)
-#        self.assertEqual(atoken.secret, oa_atoken.secret)
+        response = self.client.post(self.access_token_url, request)
+        self.assertEquals(response.status_code, 200)
+        
+        params = dict(urlparse.parse_qsl(response.content))
+        return oauth.Token(params['oauth_token'], params['oauth_token_secret'])
+
+    def test_api_access(self):
+        access_token = self.test_get_access_token()
+
+        request = oauth.Request.from_consumer_and_token(self.consumer, access_token, 'GET', self.api_access_url, {'msg': 'expected response'})
+        request.sign_request(self.signature_method, self.consumer, access_token)
+
+        response = self.client.get(self.api_access_url, request)
+        self.assertEquals(response.status_code, 200)
+        self.assert_('expected response' in response.content)
+
 
 class BasicAuthTest(MainTests):
 

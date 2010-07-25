@@ -1,0 +1,13 @@
+<html>
+    <head>
+        <title>Authorize Access</title>
+    </head>
+    <body>
+        <h1>{{ consumer.key }} is requesting access to your data</h1>
+        <p>If you didn't intend to give {{ consumer.key }} access to your data, simply close this page.</p>
+        <form action="." method="post">{% csrf_token %}
+            {{ form }}
+            <div><input type="submit" value="Submit" /></div>
+        </form>
+    </body>
+</html>
