@@ -4,25 +4,21 @@ from piston.authentication.oauth.store import InvalidAccessToken, InvalidConsume
 from piston.models import Nonce, Token, Consumer, VERIFIER_SIZE
 
 
-class ModelStore(Store):    
+class ModelStore(Store):
+    """
+    Store implementation using the Django models defined in `piston.models`.
+    """
     def get_consumer(self, request, oauth_request, consumer_key):
         try:
-            consumer = Consumer.objects.get(key=consumer_key)
-            return oauth.Consumer(consumer.key, consumer.secret)
+            return Consumer.objects.get(key=consumer_key)
         except Consumer.DoesNotExist:
             raise InvalidConsumer
 
     def get_consumer_from_request_token(self, request, oauth_request, request_token):
-        try:
-            return Token.objects.get(key=request_token.key, token_type=Token.REQUEST).consumer
-        except Token.DoesNotExist:
-            raise InvalidConsumer
+        return request_token.consumer
 
     def get_consumer_from_access_token(self, request, oauth_request, access_token):
-        try:
-            return Token.objects.get(key=access_token.key, token_type=Token.ACCESS).consumer
-        except Token.DoesNotExist:
-            raise InvalidConsumer
+        return access_token.consumer
 
     def create_request_token(self, request, oauth_request, consumer, callback):
         token = Token.objects.create_token(
@@ -42,18 +38,13 @@ class ModelStore(Store):
             raise InvalidRequestToken
 
     def authorize_request_token(self, request, oauth_request, request_token):    
-        try:
-            token = Token.objects.get(key=request_token.key, token_type=Token.REQUEST)
-            token.is_approved = True
-            token.user = request.user
-            token.verifier = oauth.generate_verifier(VERIFIER_SIZE)
-            token.save()
-            return token
-        except Token.DoesNotExist:
-            raise InvalidRequestToken
+        request_token.is_approved = True
+        request_token.user = request.user
+        request_token.verifier = oauth.generate_verifier(VERIFIER_SIZE)
+        request_token.save()
+        return request_token
 
     def create_access_token(self, request, oauth_request, consumer, request_token):
-        request_token = Token.objects.get(key=request_token.key, token_type=Token.REQUEST)
         access_token = Token.objects.create_token(
             token_type=Token.ACCESS,
             timestamp=oauth_request['oauth_timestamp'],
@@ -70,10 +61,7 @@ class ModelStore(Store):
             raise InvalidAccessToken
 
     def get_user_from_access_token(self, request, oauth_request, access_token):
-        try:
-            return Token.objects.get(key=access_token.key, token_type=Token.ACCESS).user
-        except Token.DoesNotExist:
-            raise InvalidConsumer
+        return access_token.user
 
     def check_nonce(self, request, oauth_request, nonce):
         nonce, created = Nonce.objects.get_or_create(
