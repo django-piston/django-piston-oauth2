@@ -23,8 +23,8 @@ class OAuthAuthentication(object):
         if not verify_oauth_request(request, oauth_request, consumer, access_token):
             return False
 
-        request.user = store.get_user_from_access_token(request, oauth_request, access_token)
-        request.consumer = store.get_consumer_from_access_token(request, oauth_request, access_token)
+        request.user = store.get_user_for_access_token(request, oauth_request, access_token)
+        request.consumer = store.get_consumer_for_access_token(request, oauth_request, access_token)
         request.throttle_extra = request.consumer.key
 
         return True

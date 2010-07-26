@@ -14,10 +14,10 @@ class ModelStore(Store):
         except Consumer.DoesNotExist:
             raise InvalidConsumer
 
-    def get_consumer_from_request_token(self, request, oauth_request, request_token):
+    def get_consumer_for_request_token(self, request, oauth_request, request_token):
         return request_token.consumer
 
-    def get_consumer_from_access_token(self, request, oauth_request, access_token):
+    def get_consumer_for_access_token(self, request, oauth_request, access_token):
         return access_token.consumer
 
     def create_request_token(self, request, oauth_request, consumer, callback):
@@ -60,7 +60,7 @@ class ModelStore(Store):
         except Token.DoesNotExist:
             raise InvalidAccessToken
 
-    def get_user_from_access_token(self, request, oauth_request, access_token):
+    def get_user_for_access_token(self, request, oauth_request, access_token):
         return access_token.user
 
     def check_nonce(self, request, oauth_request, nonce):

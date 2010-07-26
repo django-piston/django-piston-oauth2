@@ -40,7 +40,7 @@ def authorize_request_token(request, form_class=AuthorizeRequestTokenForm, templ
 
     oauth_request = get_oauth_request(request)
     request_token = store.get_request_token(request, oauth_request, request.REQUEST['oauth_token'])
-    consumer = store.get_consumer_from_request_token(request, oauth_request, request_token)
+    consumer = store.get_consumer_for_request_token(request, oauth_request, request_token)
     
     if request.method == 'POST':
         form = form_class(request.POST)

@@ -41,7 +41,7 @@ class Store(object):
     instance it itself returned at an earlier stage from one of the methods that
     take a key and return a Consumer or Token. This means if your store
     implementation uses tokens that keep a reference to its Consumer on the
-    Token itself, `get_consumer_from_request_token` can simply return
+    Token itself, `get_consumer_for_request_token` can simply return
     `request_token.consumer`.
     """
     def get_consumer(self, request, oauth_request, consumer_key):
@@ -54,7 +54,7 @@ class Store(object):
         """
         raise NotImplementedError
     
-    def get_consumer_from_request_token(self, request, oauth_request, request_token):
+    def get_consumer_for_request_token(self, request, oauth_request, request_token):
         """
         Return the Consumer associated with the `request_token` Token, or raise
         `InvalidConsumer`.
@@ -65,7 +65,7 @@ class Store(object):
         """
         raise NotImplementedError
     
-    def get_consumer_from_access_token(self, request, oauth_request, access_token):
+    def get_consumer_for_access_token(self, request, oauth_request, access_token):
         """
         Return the Consumer associated with the `access_token` Token, or raise
         `InvalidConsumer`.
@@ -130,7 +130,7 @@ class Store(object):
         """
         raise NotImplementedError
 
-    def get_user_from_access_token(self, request, oauth_request, access_token):
+    def get_user_for_access_token(self, request, oauth_request, access_token):
         """
         Return the associated User for `access_token`.
         
