@@ -30,7 +30,7 @@ def get_request_token(request):
 @login_required
 def authorize_request_token(request, form_class=AuthorizeRequestTokenForm, template_name='piston/oauth/authorize.html', verification_template_name='piston/oauth/authorize_verification_code.html'):
     if 'oauth_token' not in request.REQUEST:
-        return HttpResponse('No token specified.')
+        return HttpResponseBadRequest('No token specified.')
 
     oauth_request = get_oauth_request(request)
     request_token = store.get_request_token(request, oauth_request, request.REQUEST['oauth_token'])
@@ -60,7 +60,7 @@ def get_access_token(request):
         return HttpResponseBadRequest()
         
     if oauth_request.get('oauth_verifier', None) != request_token.verifier:
-        return False
+        return HttpResponseBadRequest()
 
     access_token = store.create_access_token(request, oauth_request, consumer, request_token)
     ret = 'oauth_token=%s&oauth_token_secret=%s' % (access_token.key, access_token.secret)
