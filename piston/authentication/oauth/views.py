@@ -49,7 +49,7 @@ def authorize_request_token(request, form_class=AuthorizeRequestTokenForm, templ
             if request_token.callback is not None and request_token.callback != 'oob':
                 return HttpResponseRedirect('%s&%s' % (request_token.get_callback_url(), urlencode({'oauth_token': request_token.key})))
             else:
-                return render_to_response(verification_template_name, { 'consumer': consumer, 'verification_code': request_token.verifier}, RequestContext(request))
+                return render_to_response(verification_template_name, {'consumer': consumer, 'verification_code': request_token.verifier}, RequestContext(request))
     else:
         form = form_class(initial={'oauth_token': request_token.key})
 
