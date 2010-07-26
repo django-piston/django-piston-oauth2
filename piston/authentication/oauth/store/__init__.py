@@ -27,12 +27,12 @@ class Store(object):
     API:
     
     Consumer:
-        A class defining at minimum a `key` and a `secret` property. Both of
-        these properties must be either str or unicode.
+        A class defining at minimum `key` and `secret` attributes. Both of these
+        attributes must be either str or unicode.
                 
     Token:
-        A class defining at minimum a `key` and a `secret` property. Both of
-        these properties must be either str or unicode.
+        A class defining at minimum `key` and `secret` attributes. Both of these
+        attributes must be either str or unicode.
         
     User:
         A `django.contrib.auth.models.User` instance.
