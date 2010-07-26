@@ -1,6 +1,6 @@
 import oauth2 as oauth
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, HttpResponseForbidden, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.views.decorators.csrf import csrf_exempt
@@ -17,10 +17,10 @@ def get_request_token(request):
 
     # Ensure the client is using 1.0a
     if 'oauth_callback' not in oauth_request:
-        return HttpResponseForbidden('OAuth 1.0 is not supported, you must use OAuth 1.0a.')
+        return HttpResponseBadRequest('OAuth 1.0 is not supported, you must use OAuth 1.0a.')
 
     if not verify_oauth_request(request, oauth_request, consumer):
-        return HttpResponseForbidden('Invalid request')
+        return HttpResponseBadRequest()
 
     request_token = store.create_request_token(request, oauth_request, consumer, oauth_request['oauth_callback'])
     ret = 'oauth_token=%s&oauth_token_secret=%s&callback_confirmed=true' % (request_token.key, request_token.secret)
@@ -57,7 +57,7 @@ def get_access_token(request):
     request_token = store.get_request_token(request, oauth_request, oauth_request['oauth_token'])
 
     if not verify_oauth_request(request, oauth_request, consumer, request_token):
-        return HttpResponseForbidden('Invalid request')
+        return HttpResponseBadRequest()
         
     if oauth_request.get('oauth_verifier', None) != request_token.verifier:
         return False
