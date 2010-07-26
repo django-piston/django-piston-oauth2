@@ -81,7 +81,6 @@ class OAuthTests(MainTests):
 
         self.assertEquals(response.status_code, 302)
         self.assert_(response['Location'].startswith(self.callback_url))
-        return response
 
     def test_get_access_token(self):
         request_token = self.test_get_request_token(self.callback_url)
