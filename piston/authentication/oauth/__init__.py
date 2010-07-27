@@ -8,12 +8,38 @@ from piston.authentication.oauth.utils import get_oauth_request, verify_oauth_re
 
 
 class OAuthAuthentication(object):
-    def __init__(self, realm='API'):
+    def __init__(self, realm='API', two_legged=False):
         self.realm = realm
+        self.two_legged = two_legged
 
     def is_authenticated(self, request):
         oauth_request = get_oauth_request(request)
 
+        if self.two_legged:
+            return self._authenticate_two_legged(request, oauth_request)
+        else:
+            return self._authenticate_three_legged(request, oauth_request)
+
+    def _authenticate_two_legged(self, request, oauth_request):
+        missing_params = require_params(oauth_request)
+        if missing_params is not None:
+            return False
+
+        try:
+            consumer = store.get_consumer(request, oauth_request, oauth_request['oauth_consumer_key'])
+        except InvalidConsumerError:
+            return False
+
+        if not verify_oauth_request(request, oauth_request, consumer):
+            return False
+
+        request.user = store.get_user_for_consumer(request, oauth_request, consumer)
+        request.consumer = consumer
+        request.throttle_extra = consumer.key
+
+        return True
+        
+    def _authenticate_three_legged(self, request, oauth_request):
         missing_params = require_params(oauth_request, ('oauth_token',))
         if missing_params is not None:
             return False

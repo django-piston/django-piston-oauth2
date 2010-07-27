@@ -12,7 +12,7 @@ class ModelStore(Store):
         try:
             return Consumer.objects.get(key=consumer_key)
         except Consumer.DoesNotExist:
-            raise InvalidConsumer()
+            raise InvalidConsumerError()
 
     def get_consumer_for_request_token(self, request, oauth_request, request_token):
         return request_token.consumer
@@ -62,6 +62,9 @@ class ModelStore(Store):
 
     def get_user_for_access_token(self, request, oauth_request, access_token):
         return access_token.user
+
+    def get_user_for_consumer(self, request, oauth_request, consumer):
+        return consumer.user
 
     def check_nonce(self, request, oauth_request, nonce):
         nonce, created = Nonce.objects.get_or_create(

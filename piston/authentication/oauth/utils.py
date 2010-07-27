@@ -37,7 +37,7 @@ def verify_oauth_request(request, oauth_request, consumer, token=None):
     return True
 
 
-def require_params(oauth_request, parameters):
+def require_params(oauth_request, parameters=[]):
     """ Ensures that the request contains all required parameters. """
     params = [
         'oauth_consumer_key',

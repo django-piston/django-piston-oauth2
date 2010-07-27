@@ -134,6 +134,16 @@ class Store(object):
         """
         raise NotImplementedError
 
+    def get_user_for_consumer(self, request, oauth_request, consumer):
+        """
+        Return the associated User for `consumer`.
+        
+        `request`: The Django request object.
+        `oauth_request`: The `oauth2.Request` object.
+        `consumer`: The Consumer that made the request.
+        """
+        raise NotImplementedError
+
     def check_nonce(self, request, oauth_request, nonce):
         """
         Return `True` if the nonce has not yet been used, `False` otherwise.

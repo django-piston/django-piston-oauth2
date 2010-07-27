@@ -14,7 +14,6 @@ echo = Resource(handler=EchoHandler)
 popo = Resource(handler=PlainOldObjectHandler)
 list_fields = Resource(handler=ListFieldsHandler)
 issue58 = Resource(handler=Issue58Handler)
-ouath_access = Resource(handler=EchoHandler, authentication=OAuthAuthentication(realm='TestApplication'))
 
 AUTHENTICATORS = [auth,]
 SIMPLE_USERS = (('admin', 'secr3t'),
@@ -28,6 +27,9 @@ for username, password in SIMPLE_USERS:
 
 multiauth = Resource(handler=PlainOldObjectHandler, 
                         authentication=AUTHENTICATORS)
+
+ouath_two_legged_api = Resource(handler=EchoHandler, authentication=OAuthAuthentication(realm='TestApplication', two_legged=True))
+ouath_three_legged_api = Resource(handler=EchoHandler, authentication=OAuthAuthentication(realm='TestApplication'))
 
 urlpatterns = patterns('',
     url(r'^entries/$', entries),
@@ -48,7 +50,8 @@ urlpatterns = patterns('',
 
     # OAuth
     url(r'^oauth/', include('piston.authentication.oauth.urls')),
-    url(r'^oauth/api_access$', ouath_access),
+    url(r'^oauth/two_legged_api$', ouath_two_legged_api),
+    url(r'^oauth/three_legged_api$', ouath_three_legged_api),
 
     url(r'^list_fields$', list_fields),
     url(r'^list_fields/(?P<id>.+)$', list_fields),

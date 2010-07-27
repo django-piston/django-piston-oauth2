@@ -43,7 +43,8 @@ class OAuthTests(MainTests):
     request_token_url = 'http://testserver/api/oauth/get_request_token'
     authorize_url = 'http://testserver/api/oauth/authorize_request_token'
     access_token_url = 'http://testserver/api/oauth/get_access_token'
-    api_access_url = 'http://testserver/api/oauth/api_access'
+    two_legged_api_url = 'http://testserver/api/oauth/two_legged_api'
+    three_legged_api_url = 'http://testserver/api/oauth/three_legged_api'
 
     def setUp(self):
         super(OAuthTests, self).setUp()
@@ -98,13 +99,21 @@ class OAuthTests(MainTests):
         params = dict(urlparse.parse_qsl(response.content))
         return oauth.Token(params['oauth_token'], params['oauth_token_secret'])
 
-    def test_api_access(self):
+    def test_two_legged_api(self):
+        request = oauth.Request.from_consumer_and_token(self.consumer, None, 'GET', self.two_legged_api_url, {'msg': 'expected response'})
+        request.sign_request(self.signature_method, self.consumer, None)
+
+        response = self.client.get(self.two_legged_api_url, request)
+        self.assertEquals(response.status_code, 200)
+        self.assert_('expected response' in response.content)
+
+    def test_three_legged_api(self):
         access_token = self.test_get_access_token()
 
-        request = oauth.Request.from_consumer_and_token(self.consumer, access_token, 'GET', self.api_access_url, {'msg': 'expected response'})
+        request = oauth.Request.from_consumer_and_token(self.consumer, access_token, 'GET', self.three_legged_api_url, {'msg': 'expected response'})
         request.sign_request(self.signature_method, self.consumer, access_token)
 
-        response = self.client.get(self.api_access_url, request)
+        response = self.client.get(self.three_legged_api_url, request)
         self.assertEquals(response.status_code, 200)
         self.assert_('expected response' in response.content)
 
