@@ -8,7 +8,7 @@ from django.http import HttpResponse
 class HttpBasicAuthentication(object):
     """
     Basic HTTP authenticater. Synopsis:
-    
+
     Authentication handlers must implement two methods:
      - `is_authenticated`: Will be called when checking for
         authentication. Receives a `request` object, please
@@ -28,7 +28,7 @@ class HttpBasicAuthentication(object):
 
         if not auth_string:
             return False
-            
+
         try:
             (authmeth, auth) = auth_string.split(" ", 1)
 
@@ -39,12 +39,12 @@ class HttpBasicAuthentication(object):
             (username, password) = auth.split(':', 1)
         except (ValueError, binascii.Error):
             return False
-        
+
         request.user = self.auth_func(username=username, password=password) \
             or AnonymousUser()
-                
+
         return not request.user in (False, None, AnonymousUser())
-        
+
     def challenge(self):
         resp = HttpResponse("Authorization Required")
         resp['WWW-Authenticate'] = 'Basic realm="%s"' % self.realm
@@ -61,7 +61,7 @@ class HttpBasicSimple(HttpBasicAuthentication):
         self.password = password
 
         super(HttpBasicSimple, self).__init__(auth_func=self.hash, realm=realm)
-    
+
     def hash(self, username, password):
         if username == self.user.username and password == self.password:
             return self.user

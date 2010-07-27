@@ -27,7 +27,7 @@ class ModelStore(Store):
             timestamp=oauth_request['oauth_timestamp']
         )
         token.set_callback(callback)
-        token.save()    
+        token.save()
 
         return token
 
@@ -37,7 +37,7 @@ class ModelStore(Store):
         except Token.DoesNotExist:
             raise InvalidTokenError()
 
-    def authorize_request_token(self, request, oauth_request, request_token):    
+    def authorize_request_token(self, request, oauth_request, request_token):
         request_token.is_approved = True
         request_token.user = request.user
         request_token.verifier = oauth.generate_verifier(VERIFIER_SIZE)

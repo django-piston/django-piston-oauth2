@@ -21,18 +21,18 @@ class Store(object):
     by the views and the authentication backend to get consumers and tokens, and
     to create tokens. The following terms are used in the documentation of the
     API:
-    
+
     Consumer:
         A class defining at minimum `key` and `secret` attributes. Both of these
         attributes must be either str or unicode.
-                
+
     Token:
         A class defining at minimum `key` and `secret` attributes. Both of these
         attributes must be either str or unicode.
-        
+
     User:
         A `django.contrib.auth.models.User` instance.
-             
+
     Any API that takes a consumer or token will be passed a Consumer or Token
     instance it itself returned at an earlier stage from one of the methods that
     take a key and return a Consumer or Token. This means if your store
@@ -43,13 +43,13 @@ class Store(object):
     def get_consumer(self, request, oauth_request, consumer_key):
         """
         Return the Consumer for `consumer_key` or raise `InvalidConsumerError`.
-        
+
         `request`: The Django request object.
         `oauth_request`: The `oauth2.Request` object.
         `consumer_key`: The consumer key.
         """
         raise NotImplementedError
-    
+
     def get_consumer_for_request_token(self, request, oauth_request, request_token):
         """
         Return the Consumer associated with the `request_token` Token.
@@ -59,17 +59,17 @@ class Store(object):
         `request_token`: The request token to get the consumer for.
         """
         raise NotImplementedError
-    
+
     def get_consumer_for_access_token(self, request, oauth_request, access_token):
         """
         Return the Consumer associated with the `access_token` Token.
-        
+
         `request`: The Django request object.
         `oauth_request`: The `oauth2.Request` object.
         `access_token`: The access Token to get the consumer for.
         """
         raise NotImplementedError
-        
+
     def create_request_token(self, request, oauth_request, consumer, callback):
         """
         Generate and return a Token.
@@ -83,7 +83,7 @@ class Store(object):
     def get_request_token(self, request, oauth_request, request_token_key):
         """
         Return the Token for `request_token_key` or raise `InvalidTokenError`.
-        
+
         `request`: The Django request object.
         `oauth_request`: The `oauth2.Request` object.
         `consumer`: The Consumer that made the request.
@@ -92,9 +92,9 @@ class Store(object):
         raise NotImplementedError
 
     def authorize_request_token(self, request, oauth_request, request_token):
-        """ 
+        """
         Authorize the `request_token` Token and return it.
-        
+
         `request`: The Django request object.
         `oauth_request`: The `oauth2.Request` object.
         `request_token`: The request token to authorize.
@@ -104,7 +104,7 @@ class Store(object):
     def create_access_token(self, request, oauth_request, consumer, request_token):
         """
         Generate and return a Token.
-        
+
         `request`: The Django request object.
         `oauth_request`: The `oauth2.Request` object.
         `consumer`: The Consumer that made the request.
@@ -115,7 +115,7 @@ class Store(object):
     def get_access_token(self, request, oauth_request, consumer, access_token_key):
         """
         Return the Token for `access_token_key` or raise `InvalidTokenError`.
-        
+
         `request`: The Django request object.
         `oauth_request`: The `oauth2.Request` object.
         `consumer`: The Consumer that made the request.
@@ -126,7 +126,7 @@ class Store(object):
     def get_user_for_access_token(self, request, oauth_request, access_token):
         """
         Return the associated User for `access_token`.
-        
+
         `request`: The Django request object.
         `oauth_request`: The `oauth2.Request` object.
         `consumer`: The Consumer that made the request.
@@ -137,7 +137,7 @@ class Store(object):
     def check_nonce(self, request, oauth_request, nonce):
         """
         Return `True` if the nonce has not yet been used, `False` otherwise.
-        
+
         `request`: The Django request object.
         `oauth_request`: The `oauth2.Request` object.
         `nonce`: The nonce to check.

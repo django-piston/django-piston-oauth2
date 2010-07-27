@@ -23,7 +23,7 @@ class OAuthAuthentication(object):
             access_token = store.get_access_token(request, oauth_request, consumer, oauth_request['oauth_token'])
         except (InvalidConsumerError, InvalidTokenError):
             return False
-    
+
         if not verify_oauth_request(request, oauth_request, consumer, access_token):
             return False
 
@@ -32,12 +32,12 @@ class OAuthAuthentication(object):
         request.throttle_extra = request.consumer.key
 
         return True
-        
+
     def challenge(self):
         """
         Returns a 401 response with a small bit on
         what OAuth is, and where to learn more about it.
-        
+
         When this was written, browsers did not understand
         OAuth authentication on the browser side, and hence
         the helpful template we render. Maybe some day in the

@@ -33,7 +33,7 @@ def verify_oauth_request(request, oauth_request, consumer, token=None):
         oauth_server.verify_request(oauth_request, consumer, token)
     except oauth.Error:
         return False
-    
+
     return True
 
 
