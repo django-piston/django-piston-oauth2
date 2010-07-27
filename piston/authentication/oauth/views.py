@@ -9,14 +9,14 @@ from django.views.decorators.csrf import csrf_exempt
 
 from piston.authentication.oauth.forms import AuthorizeRequestTokenForm
 from piston.authentication.oauth.store import store, InvalidConsumerError, InvalidTokenError
-from piston.authentication.oauth.utils import verify_oauth_request, get_oauth_request, require_paramaters
+from piston.authentication.oauth.utils import verify_oauth_request, get_oauth_request, require_params
 
 
 @csrf_exempt
 def get_request_token(request):
     oauth_request = get_oauth_request(request)
 
-    missing_params = require_paramaters(oauth_request, ('oauth_callback',))
+    missing_params = require_params(oauth_request, ('oauth_callback',))
     if missing_params is not None:
         return missing_params
 
@@ -69,7 +69,7 @@ def authorize_request_token(request, form_class=AuthorizeRequestTokenForm, templ
 @csrf_exempt
 def get_access_token(request):
     oauth_request = get_oauth_request(request)
-    missing_params = require_paramaters(oauth_request, ('oauth_token', 'oauth_verifier'))
+    missing_params = require_params(oauth_request, ('oauth_token', 'oauth_verifier'))
     if missing_params is not None:
         return missing_params
     

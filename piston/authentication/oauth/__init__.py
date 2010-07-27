@@ -4,7 +4,7 @@ from django.http import HttpResponse
 from django.template import loader
 
 from piston.authentication.oauth.store import store, InvalidConsumerError, InvalidTokenError
-from piston.authentication.oauth.utils import get_oauth_request, verify_oauth_request
+from piston.authentication.oauth.utils import get_oauth_request, verify_oauth_request, require_params
 
 
 class OAuthAuthentication(object):
@@ -13,6 +13,10 @@ class OAuthAuthentication(object):
 
     def is_authenticated(self, request):
         oauth_request = get_oauth_request(request)
+
+        missing_params = require_params(oauth_request, ('oauth_token',))
+        if missing_params is not None:
+            return False
 
         try:
             consumer = store.get_consumer(request, oauth_request, oauth_request['oauth_consumer_key'])
