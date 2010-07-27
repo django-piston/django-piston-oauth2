@@ -3,20 +3,16 @@ from django.core.exceptions import ImproperlyConfigured
 from django.utils import importlib
 
 
-class InvalidConsumer(RuntimeError):
+class Error(Exception):
+    """Base class for Store exceptions."""
+
+
+class InvalidConsumerError(Error):
     """Invalid consumer."""
 
 
-class InvalidToken(RuntimeError):
+class InvalidTokenError(Error):
     """Invalid token."""
-
-
-class InvalidRequestToken(InvalidToken):
-    """Invalid request token."""
-
-
-class InvalidAccessToken(InvalidToken):
-    """Invalid access token."""
 
 
 class Store(object):
@@ -46,7 +42,7 @@ class Store(object):
     """
     def get_consumer(self, request, oauth_request, consumer_key):
         """
-        Return the Consumer for `consumer_key` or raise `InvalidConsumer`.
+        Return the Consumer for `consumer_key` or raise `InvalidConsumerError`.
         
         `request`: The Django request object.
         `oauth_request`: The `oauth2.Request` object.
@@ -56,9 +52,8 @@ class Store(object):
     
     def get_consumer_for_request_token(self, request, oauth_request, request_token):
         """
-        Return the Consumer associated with the `request_token` Token, or raise
-        `InvalidConsumer`.
-        
+        Return the Consumer associated with the `request_token` Token.
+
         `request`: The Django request object.
         `oauth_request`: The `oauth2.Request` object.
         `request_token`: The request token to get the consumer for.
@@ -67,8 +62,7 @@ class Store(object):
     
     def get_consumer_for_access_token(self, request, oauth_request, access_token):
         """
-        Return the Consumer associated with the `access_token` Token, or raise
-        `InvalidConsumer`.
+        Return the Consumer associated with the `access_token` Token.
         
         `request`: The Django request object.
         `oauth_request`: The `oauth2.Request` object.
@@ -88,7 +82,7 @@ class Store(object):
 
     def get_request_token(self, request, oauth_request, request_token_key):
         """
-        Return the Token for `request_token_key` or raise `InvalidRequestToken`.
+        Return the Token for `request_token_key` or raise `InvalidTokenError`.
         
         `request`: The Django request object.
         `oauth_request`: The `oauth2.Request` object.
@@ -99,8 +93,7 @@ class Store(object):
 
     def authorize_request_token(self, request, oauth_request, request_token):
         """ 
-        Authorize the `request_token` Token and return it, or raise
-        `InvalidRequestToken`.
+        Authorize the `request_token` Token and return it.
         
         `request`: The Django request object.
         `oauth_request`: The `oauth2.Request` object.
@@ -121,7 +114,7 @@ class Store(object):
 
     def get_access_token(self, request, oauth_request, consumer, access_token_key):
         """
-        Return the Token for `access_token_key` or raise `InvalidAccessToken`.
+        Return the Token for `access_token_key` or raise `InvalidTokenError`.
         
         `request`: The Django request object.
         `oauth_request`: The `oauth2.Request` object.

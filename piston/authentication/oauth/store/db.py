@@ -1,6 +1,6 @@
 import oauth2 as oauth
 
-from piston.authentication.oauth.store import InvalidAccessToken, InvalidConsumer, InvalidRequestToken, Store
+from piston.authentication.oauth.store import InvalidConsumerError, InvalidTokenError, Store
 from piston.models import Nonce, Token, Consumer, VERIFIER_SIZE
 
 
@@ -12,7 +12,7 @@ class ModelStore(Store):
         try:
             return Consumer.objects.get(key=consumer_key)
         except Consumer.DoesNotExist:
-            raise InvalidConsumer
+            raise InvalidConsumer()
 
     def get_consumer_for_request_token(self, request, oauth_request, request_token):
         return request_token.consumer
@@ -35,7 +35,7 @@ class ModelStore(Store):
         try:
             return Token.objects.get(key=request_token_key, token_type=Token.REQUEST)
         except Token.DoesNotExist:
-            raise InvalidRequestToken
+            raise InvalidTokenError()
 
     def authorize_request_token(self, request, oauth_request, request_token):    
         request_token.is_approved = True
@@ -58,7 +58,7 @@ class ModelStore(Store):
         try:
             return Token.objects.get(key=access_token_key, token_type=Token.ACCESS)
         except Token.DoesNotExist:
-            raise InvalidAccessToken
+            raise InvalidTokenError()
 
     def get_user_for_access_token(self, request, oauth_request, access_token):
         return access_token.user

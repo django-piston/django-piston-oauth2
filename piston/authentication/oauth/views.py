@@ -8,17 +8,22 @@ from django.template import RequestContext
 from django.views.decorators.csrf import csrf_exempt
 
 from piston.authentication.oauth.forms import AuthorizeRequestTokenForm
-from piston.authentication.oauth.store import store
-from piston.authentication.oauth.utils import verify_oauth_request, get_oauth_request
+from piston.authentication.oauth.store import store, InvalidConsumerError, InvalidTokenError
+from piston.authentication.oauth.utils import verify_oauth_request, get_oauth_request, require_paramaters
 
 
 @csrf_exempt
 def get_request_token(request):
     oauth_request = get_oauth_request(request)
-    consumer = store.get_consumer(request, oauth_request, oauth_request['oauth_consumer_key'])
 
-    if 'oauth_callback' not in oauth_request:
-        return HttpResponseBadRequest('OAuth 1.0a is required.')
+    missing_params = require_paramaters(oauth_request, ('oauth_callback',))
+    if missing_params is not None:
+        return missing_params
+
+    try:
+        consumer = store.get_consumer(request, oauth_request, oauth_request['oauth_consumer_key'])
+    except InvalidConsumerError:
+        return HttpResponseBadRequest('Invalid Consumer.')
 
     if not verify_oauth_request(request, oauth_request, consumer):
         return HttpResponseBadRequest('Could not verify OAuth request.')
@@ -36,10 +41,15 @@ def get_request_token(request):
 @login_required
 def authorize_request_token(request, form_class=AuthorizeRequestTokenForm, template_name='piston/oauth/authorize.html', verification_template_name='piston/oauth/authorize_verification_code.html'):
     if 'oauth_token' not in request.REQUEST:
-        return HttpResponseBadRequest('No token specified.')
+        return HttpResponseBadRequest('No request token specified.')
 
     oauth_request = get_oauth_request(request)
-    request_token = store.get_request_token(request, oauth_request, request.REQUEST['oauth_token'])
+
+    try:
+        request_token = store.get_request_token(request, oauth_request, request.REQUEST['oauth_token'])
+    except InvalidTokenError:
+        return HttpResponseBadRequest('Invalid request token.')
+    
     consumer = store.get_consumer_for_request_token(request, oauth_request, request_token)
     
     if request.method == 'POST':
@@ -59,8 +69,17 @@ def authorize_request_token(request, form_class=AuthorizeRequestTokenForm, templ
 @csrf_exempt
 def get_access_token(request):
     oauth_request = get_oauth_request(request)
-    consumer = store.get_consumer(request, oauth_request, oauth_request['oauth_consumer_key'])
-    request_token = store.get_request_token(request, oauth_request, oauth_request['oauth_token'])
+    missing_params = require_paramaters(oauth_request, ('oauth_token', 'oauth_verifier'))
+    if missing_params is not None:
+        return missing_params
+    
+    try:
+        consumer = store.get_consumer(request, oauth_request, oauth_request['oauth_consumer_key'])
+        request_token = store.get_request_token(request, oauth_request, oauth_request['oauth_token'])
+    except InvalidTokenError:
+        return HttpResponseBadRequest('Invalid consumer.')
+    except InvalidConsumerError:
+        return HttpResponseBadRequest('Invalid request token.')
 
     if not verify_oauth_request(request, oauth_request, consumer, request_token):
         return HttpResponseBadRequest('Could not verify OAuth request.')

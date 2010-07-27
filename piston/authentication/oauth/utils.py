@@ -1,9 +1,6 @@
 import oauth2 as oauth
 from django.contrib.auth.models import User
-
-
-def generate_random(length=8):
-    return User.objects.make_random_password(length=length)
+from django.http import HttpResponseBadRequest
 
 
 def get_oauth_request(request):
@@ -28,9 +25,31 @@ def verify_oauth_request(request, oauth_request, consumer, token=None):
         oauth_server.add_signature_method(oauth.SignatureMethod_HMAC_SHA1())
         oauth_server.add_signature_method(oauth.SignatureMethod_PLAINTEXT())
 
+        # Ensure the passed keys and secrets are ascii, or HMAC will complain.
         consumer = oauth.Consumer(consumer.key.encode('ascii', 'ignore'), consumer.secret.encode('ascii', 'ignore'))
+        if token is not None:
+            token = oauth.Token(token.key.encode('ascii', 'ignore'), token.secret.encode('ascii', 'ignore'))
+
         oauth_server.verify_request(oauth_request, consumer, token)
-    except Exception, e:
+    except oauth.Error:
         return False
     
     return True
+
+
+def require_paramaters(oauth_request, parameters):
+    """ Ensures that the request contains all required parameters. """
+    params = [
+        'oauth_consumer_key',
+        'oauth_nonce',
+        'oauth_signature',
+        'oauth_signature_method',
+        'oauth_timestamp',
+    ]
+    params.extend(parameters)
+
+    missing = list(param for param in params if param not in oauth_request)
+    if missing:
+        return HttpResponseBadRequest('Missing OAuth parameters: %s' % (', '.join(missing)))
+
+    return None

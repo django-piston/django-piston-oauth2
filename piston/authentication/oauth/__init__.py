@@ -3,7 +3,7 @@ from django.conf import settings
 from django.http import HttpResponse
 from django.template import loader
 
-from piston.authentication.oauth.store import store, InvalidAccessToken, InvalidConsumer
+from piston.authentication.oauth.store import store, InvalidConsumerError, InvalidTokenError
 from piston.authentication.oauth.utils import get_oauth_request, verify_oauth_request
 
 
@@ -17,7 +17,7 @@ class OAuthAuthentication(object):
         try:
             consumer = store.get_consumer(request, oauth_request, oauth_request['oauth_consumer_key'])
             access_token = store.get_access_token(request, oauth_request, consumer, oauth_request['oauth_token'])
-        except (InvalidConsumer, InvalidAccessToken):
+        except (InvalidConsumerError, InvalidTokenError):
             return False
     
         if not verify_oauth_request(request, oauth_request, consumer, access_token):
