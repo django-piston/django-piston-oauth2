@@ -1,7 +1,7 @@
 import os
 DEBUG = True
 DATABASE_ENGINE = 'sqlite3'
-DATABASE_NAME = '/tmp/piston.db'
+DATABASE_NAME = os.path.join(os.path.dirname(__file__), 'data.db')
 INSTALLED_APPS = (
     'django.contrib.auth', 
     'django.contrib.contenttypes', 
