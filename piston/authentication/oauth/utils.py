@@ -48,7 +48,11 @@ def require_params(oauth_request, parameters=[]):
     ]
     params.extend(parameters)
 
-    missing = list(param for param in params if param not in oauth_request)
+    try:
+        missing = list(param for param in params if param not in oauth_request)
+    except:
+        missing = params
+        
     if missing:
         return HttpResponseBadRequest('Missing OAuth parameters: %s' % (', '.join(missing)))
 
