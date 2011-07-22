@@ -30,6 +30,8 @@ class rc_factory(object):
                  DELETED = ('', 204), # 204 says "Don't send a body!"
                  BAD_REQUEST = ('Bad Request', 400),
                  FORBIDDEN = ('Forbidden', 401),
+                 UNAUTHORIZED = ('Unauthorized', 401),
+                 # FORBIDDEN = ('Forbidden', 403),
                  NOT_FOUND = ('Not Found', 404),
                  DUPLICATE_ENTRY = ('Conflict/Duplicate', 409),
                  NOT_HERE = ('Gone', 410),
@@ -47,6 +49,10 @@ class rc_factory(object):
             (r, c) = self.CODES.get(attr)
         except TypeError:
             raise AttributeError(attr)
+
+        if (r, c) == ('Forbidden', 401):
+            raise PendingDeprecationWarning('In future versions rc.FORBIDDEN will return 403 and rc.UNAUTHORIZED 401.')
+            raise DeprecationWarning('Please change all your rc.FORBIDDEN for rc.UNAUTHORIZED')
 
         class HttpResponseWrapper(HttpResponse):
             """
