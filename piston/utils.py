@@ -1,4 +1,5 @@
 import time
+import warnings
 from django.http import HttpResponseNotAllowed, HttpResponseForbidden, HttpResponse, HttpResponseBadRequest
 from django.core.urlresolvers import reverse
 from django.core.cache import cache
@@ -51,8 +52,8 @@ class rc_factory(object):
             raise AttributeError(attr)
 
         if (r, c) == ('Forbidden', 401):
-            raise PendingDeprecationWarning('In future versions rc.FORBIDDEN will return 403 and rc.UNAUTHORIZED 401.')
-            raise DeprecationWarning('Please change all your rc.FORBIDDEN for rc.UNAUTHORIZED')
+            warnings.warn('In future versions rc.FORBIDDEN will return 403 and rc.UNAUTHORIZED 401.', PendingDeprecationWarning)
+            warnings.warn('Please change all your rc.FORBIDDEN for rc.UNAUTHORIZED', DeprecationWarning)
 
         class HttpResponseWrapper(HttpResponse):
             """
