@@ -12,6 +12,10 @@ Read the [[ReleaseNotes|release notes / what's new]] for 0.2.2.
 
 **NEW**: Discussion group `is hosted on Google Groups <http://groups.google.com/group/django-piston>`_.
 
+Development Version
+-------------------
+
+The development version is currently ``0.3dev`` in ``django-piston-oauth2`` `here `django-piston-oauth2 <https://bitbucket.org/jespern/django-piston-oauth2>`_, and this documentation is built with it.
 
 A mini-framework for Django for creating RESTful APIs
 -----------------------------------------------------
@@ -28,12 +32,10 @@ It has several unique features:
 * Ships with a convenient reusable library in Python
 * Respects and encourages proper use of HTTP (status codes, ...)
 * Has built in (optional) form validation (via Django), throttling, etc.
-* Supports [[Documentation#streaming|streaming]], with a small memory footprint.
+* Supports :ref:`streaming <streaming>`, with a small memory footprint.
 * Stays out of your way.
 
 **NB**: OAuth ships with piston for now, but you are not required to use it. It simply provides some boilerplate in case you want to use it later (consumer/token models, urls, etc.)
-
-
 
 About The Community Repository
 ------------------------------
