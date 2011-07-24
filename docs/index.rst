@@ -6,10 +6,10 @@
 Welcome to Django Piston's documentation!
 =========================================
 
-Contents:
-
 .. toctree::
    :maxdepth: 2
+
+   Bitbucket Wiki <Documentation>	
 
 Indices and tables
 ==================
