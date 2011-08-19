@@ -232,16 +232,15 @@ class Mimer(object):
         """
         type_formencoded = "application/x-www-form-urlencoded"
 
-        ctype = self.request.META.get('CONTENT_TYPE', type_formencoded)
         # Content-Type format:
         # http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.17
         ctype = self.request.META.get(
-            'CONTENT_TYPE', type_formencoded).split(";")
+            'CONTENT_TYPE', type_formencoded).split(";")[0]
 
         if type_formencoded in ctype:
             return None
 
-        return ctype[0]
+        return ctype
 
     def translate(self):
         """
