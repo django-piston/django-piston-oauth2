@@ -1,12 +1,13 @@
 import urlparse
 
 import oauth2 as oauth
+from django.http import HttpRequest
 from django.test import TestCase
 from django.contrib.auth.models import User
 from django.utils import simplejson
-from django.conf import settings
+from piston import utils
 
-from piston.models import Consumer, Token
+from piston.models import Consumer
 
 try:
     import yaml
@@ -14,7 +15,7 @@ except ImportError:
     print "Can't run YAML testsuite"
     yaml = None
 
-import urllib, base64
+import base64
 
 from test_project.apps.testapp.models import TestModel, ExpressiveTestModel, Comment, InheritedModel, Issue58Model, ListFieldsModel
 from test_project.apps.testapp import signals
@@ -31,10 +32,23 @@ class MainTests(TestCase):
 
         if hasattr(self, 'init_delegate'):
             self.init_delegate()
-        
+
     def tearDown(self):
         self.user.delete()
 
+
+class MimerTests(TestCase):
+    def setUp(self):
+        self.request = HttpRequest()
+        self.mimer = utils.Mimer(self.request)
+
+    def test_content_type_without_encoding(self):
+        self.request.META['CONTENT_TYPE'] = 'application/json'
+        self.assertEqual('application/json', mimer.content_type())
+
+    def test_content_type_with_encoding(self):
+        self.request.META['CONTENT_TYPE'] = 'application/json; charset=UTF-8'
+        self.assertEqual('application/json', mimer.content_type())
 
 
 class OAuthTests(MainTests):
@@ -87,15 +101,15 @@ class OAuthTests(MainTests):
         request_token = self.test_get_request_token(self.callback_url)
         response = self.authorize_request_token(request_token.key)
         params = dict(urlparse.parse_qsl(response['Location'][len(self.callback_url)+1:]))
-        
+
         request_token.set_verifier(params['oauth_verifier'])
-        
+
         request = oauth.Request.from_consumer_and_token(self.consumer, request_token, 'POST', self.access_token_url)
         request.sign_request(self.signature_method, self.consumer, request_token)
 
         response = self.client.post(self.access_token_url, request)
         self.assertEquals(response.status_code, 200)
-        
+
         params = dict(urlparse.parse_qsl(response.content))
         return oauth.Token(params['oauth_token'], params['oauth_token_secret'])
 
@@ -144,7 +158,7 @@ class BasicAuthTest(MainTests):
 
 class TestMultipleAuthenticators(MainTests):
     def test_both_authenticators(self):
-        for username, password in (('admin', 'admin'), 
+        for username, password in (('admin', 'admin'),
                                    ('admin', 'secr3t'),
                                    ('admin', 'user'),
                                    ('admin', 'allwork'),
@@ -182,40 +196,40 @@ class AbstractBaseClassTests(MainTests):
         self.ab1.save()
         self.ab2 = InheritedModel()
         self.ab2.save()
-        
+
     def test_field_presence(self):
         result = self.client.get('/api/abstract.json',
                 HTTP_AUTHORIZATION=self.auth_string).content
-                
+
         expected = """[
     {
-        "id": 1, 
-        "some_other": "something else", 
+        "id": 1,
+        "some_other": "something else",
         "some_field": "something here"
-    }, 
+    },
     {
-        "id": 2, 
-        "some_other": "something else", 
+        "id": 2,
+        "some_other": "something else",
         "some_field": "something here"
     }
 ]"""
-        
+
         self.assertEquals(result, expected)
 
     def test_specific_id(self):
         ids = (1, 2)
         be = """{
-    "id": %d, 
-    "some_other": "something else", 
+    "id": %d,
+    "some_other": "something else",
     "some_field": "something here"
 }"""
-        
+
         for id_ in ids:
             result = self.client.get('/api/abstract/%d.json' % id_,
                     HTTP_AUTHORIZATION=self.auth_string).content
-                    
+
             expected = be % id_
-            
+
             self.assertEquals(result, expected)
 
 class IncomingExpressiveTests(MainTests):
@@ -229,58 +243,58 @@ class IncomingExpressiveTests(MainTests):
         outgoing = simplejson.dumps({ 'title': 'test', 'content': 'test',
                                       'comments': [ { 'content': 'test1' },
                                                     { 'content': 'test2' } ] })
-    
+
         expected = """[
     {
-        "content": "bar", 
-        "comments": [], 
+        "content": "bar",
+        "comments": [],
         "title": "foo"
-    }, 
+    },
     {
-        "content": "bar2", 
-        "comments": [], 
+        "content": "bar2",
+        "comments": [],
         "title": "foo2"
     }
 ]"""
-    
+
         result = self.client.get('/api/expressive.json',
             HTTP_AUTHORIZATION=self.auth_string).content
 
         self.assertEquals(result, expected)
-        
+
         resp = self.client.post('/api/expressive.json', outgoing, content_type='application/json',
             HTTP_AUTHORIZATION=self.auth_string)
-            
+
         self.assertEquals(resp.status_code, 201)
-        
+
         expected = """[
     {
-        "content": "bar", 
-        "comments": [], 
+        "content": "bar",
+        "comments": [],
         "title": "foo"
-    }, 
+    },
     {
-        "content": "bar2", 
-        "comments": [], 
+        "content": "bar2",
+        "comments": [],
         "title": "foo2"
-    }, 
+    },
     {
-        "content": "test", 
+        "content": "test",
         "comments": [
             {
                 "content": "test1"
-            }, 
+            },
             {
                 "content": "test2"
             }
-        ], 
+        ],
         "title": "test"
     }
 ]"""
-        
-        result = self.client.get('/api/expressive.json', 
+
+        result = self.client.get('/api/expressive.json',
             HTTP_AUTHORIZATION=self.auth_string).content
-            
+
         self.assertEquals(result, expected)
 
     def test_incoming_invalid_json(self):
@@ -293,7 +307,7 @@ class IncomingExpressiveTests(MainTests):
     def test_incoming_yaml(self):
         if not yaml:
             return
-            
+
         expected = """- comments: []
   content: bar
   title: foo
@@ -301,19 +315,19 @@ class IncomingExpressiveTests(MainTests):
   content: bar2
   title: foo2
 """
-          
+
         self.assertEquals(self.client.get('/api/expressive.yaml',
             HTTP_AUTHORIZATION=self.auth_string).content, expected)
 
         outgoing = yaml.dump({ 'title': 'test', 'content': 'test',
                                       'comments': [ { 'content': 'test1' },
                                                     { 'content': 'test2' } ] })
-            
+
         resp = self.client.post('/api/expressive.json', outgoing, content_type='application/x-yaml',
             HTTP_AUTHORIZATION=self.auth_string)
-        
+
         self.assertEquals(resp.status_code, 201)
-        
+
         expected = """- comments: []
   content: bar
   title: foo
@@ -326,7 +340,7 @@ class IncomingExpressiveTests(MainTests):
   content: test
   title: test
 """
-        self.assertEquals(self.client.get('/api/expressive.yaml', 
+        self.assertEquals(self.client.get('/api/expressive.yaml',
             HTTP_AUTHORIZATION=self.auth_string).content, expected)
 
     def test_incoming_invalid_yaml(self):
@@ -356,7 +370,7 @@ class Issue36RegressionTests(MainTests):
         super(self.__class__, self).tearDown()
         self.data.delete()
         signals.entry_request_started.disconnect(self.fetch_request)
-    
+
     def test_simple(self):
         # First try it with POST to see if it works there
         if True:
@@ -410,9 +424,9 @@ class ListFieldsTest(MainTests):
 
     def test_single_item(self):
         expect = '''{
-    "color": "green", 
-    "kind": "fruit", 
-    "id": 1, 
+    "color": "green",
+    "kind": "fruit",
+    "id": 1,
     "variety": "apple"
 }'''
         resp = self.client.get('/api/list_fields/1')
@@ -423,22 +437,22 @@ class ListFieldsTest(MainTests):
     def test_multiple_items(self):
         expect = '''[
     {
-        "id": 1, 
+        "id": 1,
         "variety": "apple"
-    }, 
+    },
     {
-        "id": 2, 
+        "id": 2,
         "variety": "carrot"
-    }, 
+    },
     {
-        "id": 3, 
+        "id": 3,
         "variety": "dog"
     }
 ]'''
         resp = self.client.get('/api/list_fields')
         self.assertEquals(resp.status_code, 200)
         self.assertEquals(resp.content, expect)
-        
+
 class ErrorHandlingTests(MainTests):
     """Test proper handling of errors by Resource"""
 
@@ -461,7 +475,7 @@ class Issue58ModelTests(MainTests):
     it make piston crash with a `TypeError`
     """
     def init_delegate(self):
-        m1 = Issue58Model(read=True,model='t') 
+        m1 = Issue58Model(read=True,model='t')
         m1.save()
         m2 = Issue58Model(read=False,model='f')
         m2.save()
@@ -471,11 +485,11 @@ class Issue58ModelTests(MainTests):
 
         expected = """[
     {
-        "read": true, 
+        "read": true,
         "model": "t"
-    }, 
+    },
     {
-        "read": false, 
+        "read": false,
         "model": "f"
     }
 ]"""
