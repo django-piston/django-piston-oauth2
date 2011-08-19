@@ -23,12 +23,14 @@ from test_project.apps.testapp import signals
 
 class MainTests(TestCase):
     def setUp(self):
-        self.user = User.objects.create_user('admin', 'admin@world.com', 'admin')
+        self.user = User.objects.create_user(
+            'admin', 'admin@world.com', 'admin')
         self.user.is_staff = True
         self.user.is_superuser = True
         self.user.is_active = True
         self.user.save()
-        self.auth_string = 'Basic %s' % base64.encodestring('admin:admin').rstrip()
+        self.auth_string = 'Basic %s' % (
+            base64.encodestring('admin:admin').rstrip(), )
 
         if hasattr(self, 'init_delegate'):
             self.init_delegate()
@@ -44,11 +46,11 @@ class MimerTests(TestCase):
 
     def test_content_type_without_encoding(self):
         self.request.META['CONTENT_TYPE'] = 'application/json'
-        self.assertEqual('application/json', mimer.content_type())
+        self.assertEqual('application/json', self.mimer.content_type())
 
     def test_content_type_with_encoding(self):
         self.request.META['CONTENT_TYPE'] = 'application/json; charset=UTF-8'
-        self.assertEqual('application/json', mimer.content_type())
+        self.assertEqual('application/json', self.mimer.content_type())
 
 
 class OAuthTests(MainTests):
