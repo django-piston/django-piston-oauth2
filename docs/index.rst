@@ -15,7 +15,7 @@ Read the [[ReleaseNotes|release notes / what's new]] for 0.2.2.
 Development Version
 -------------------
 
-The development version is currently ``0.3dev`` in ``django-piston-oauth2`` `here `django-piston-oauth2 <https://bitbucket.org/jespern/django-piston-oauth2>`_, and this documentation is built with it.
+The development version is currently ``0.3dev`` in ``django-piston-oauth2`` `here <https://bitbucket.org/jespern/django-piston-oauth2>`_, and this documentation is built with it.
 
 A mini-framework for Django for creating RESTful APIs
 -----------------------------------------------------
